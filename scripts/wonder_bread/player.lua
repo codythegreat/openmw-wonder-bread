@@ -11,6 +11,7 @@ local storage = require("openmw.storage")
 -- local I = require("openmw.interfaces")
 local ui = require("openmw.ui")
 
+local settingsWB = storage.playerSection('Settings_wonderbread')
 local objectsWB = storage.globalSection('Objects_wonderbread')
 
 -- used mostly for core.sendGlobalEvent
@@ -137,13 +138,12 @@ local function getAllInInventory(i)
 
     local inventory = types.Actor.inventory(self)
     local items = {}
-    local message = ''
-    for i, item in pairs(itemList) do
+    for _, item in pairs(itemList) do
 
         local found = inventory:findAll(item)
         
         if found then
-            for i, v in ipairs(found) do
+            for _, v in ipairs(found) do
                 items[#items + 1] = v
             end
         end
@@ -175,20 +175,14 @@ end
 
 -- returns true if the player is close to water, false otherwise
 local function isPlayerCloseToWater(rayResult)
+    if not self.cell.hasWater then
+        return false
+    end
     local waterline = self.cell.waterLevel
     local hit = rayResult.hitPos
-    local x1 = hit.x
-    local y1 = hit.y
-    local z1 = waterline
-
-    local x2 = self.position.x
-    local y2 = self.position.y
-    local z2 = self.position.z
+    local waterHit = util.vector3(hit.x, hit.y, waterline)
     local maxDistance = 300
-
-    return math.abs(x1 - x2) < maxDistance
-       and math.abs(y1 - y2) < maxDistance
-       and math.abs(z1 - z2) < maxDistance
+    return (waterHit - self.position):length() < maxDistance
 end
 
 local function contains(list, item)
@@ -201,7 +195,8 @@ local function contains(list, item)
 end
 
 local function onKeyPress(key)
-    if key.symbol == 'b' then
+    local hotkey = settingsWB:get('actionHotkey')
+    if key.code == hotkey then
         local target = getTarget()
         if hasHitWater(target) then
             if isPlayerCloseToWater(target) then
@@ -272,7 +267,6 @@ local function onKeyPress(key)
                             player = self.object
                         })
 
-                        -- TODO: remove full bottles and add empty bottles
                         for _, bottle in ipairs(fullBottles) do
                             local toReplace = math.min(toConvert, bottle.count)
                             core.sendGlobalEvent('removeObject', {

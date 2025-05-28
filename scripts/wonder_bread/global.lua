@@ -8,7 +8,6 @@ local storage = require("openmw.storage")
 -- local anim = require("openmw.animation")
 -- local I = require("openmw.interfaces")
 
-local settingsWB = storage.globalSection('Settings_wonderbread')
 local objectsWB = storage.globalSection('Objects_wonderbread')
 
 -- this is called when the mod is loaded
