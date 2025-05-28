@@ -1,0 +1,3 @@
+GLOBAL: scripts/wonder_bread/global.lua
+PLAYER: scripts/wonder_bread/player.lua
+CUSTOM: scripts/wonder_bread/dough.lua
