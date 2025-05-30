@@ -1,5 +1,5 @@
 local types = require("openmw.types")
-local world = require("openmw.world") -- read/write access to world
+local world = require("openmw.world")
 local core = require("openmw.core")
 -- local util = require("openmw.util")
 -- local async = require("openmw.async")
@@ -68,41 +68,6 @@ local function initializeRecords()
     objectsWB:set('baked_bread_id', record.id)
 end
 
-local function attachScript(data)
-    local object = data.object
-    local scriptName = data.scriptName
-
-    if not object then
-        print("Error: object is nil")
-        return
-    end
-
-    if not scriptName then
-        print("Error: scriptName is nil")
-        return
-    end
-
-    -- check to see if the script is already attached
-    if object:hasScript(scriptName) then
-        print("Script " .. scriptName .. " is already attached to object " .. object.id)
-        return
-    end
-
-    -- attach the script to the object
-    object:addScript(scriptName)
-
-    -- send a message back to the player that the script was attached
-    local player = data.player
-    player:sendEvent(data.callback or 'receiveBackData', {
-        eventName = 'attachScript',
-        eventData = data,
-        returnData = {
-            objectId = object.id,
-            scriptName = scriptName
-        }
-    })
-end
-
 -- creates a new record and returns it
 local function createNewRecord(data)
     -- TODO: come up with a way to create the object without createRecordDraft
@@ -154,7 +119,7 @@ local function createAndMoveToInventory(data)
         eventName = 'createAndMoveToInventory',
         eventData = data,
         returnData = {
-            objectId = object.id
+            object = object
         }
     })
 end
@@ -191,7 +156,7 @@ local function createAndMoveToPosition(data)
         eventName = 'createAndMoveToPosition',
         eventData = data,
         returnData = {
-            object = object.object
+            object = object
         }
     })
 end
@@ -222,10 +187,9 @@ local function onInit()
     end
 end
 
-local function onUpdate()
-    -- TODO: delete this once the logic in dough.lua works
-
-    -- check to see if there are any dougn that could be growing
+local function onUpdate(dt)
+    -- you MUST do this in global instead of a custom script because Statics can't be found outside of cell:getAll
+    -- check to see if there are any dough that could be growing
     for _, item in pairs(world.players[1].cell:getAll(types.Miscellaneous)) do
         if item.recordId == objectsWB:get('dough_id') then
             -- is the dougn near hot coals?
@@ -236,18 +200,17 @@ local function onUpdate()
                     -- Is the dough close to the hot coals?
                     if (coals.position - dough.position):length() < 100 then
                         -- dough is near hot coals, so grow it
-                        -- TODO: make this based on game time instead of on each frame
-                        dough:setScale(dough.scale + 0.01)
+                        local scaleIncreasePerSecond = .25
+                        dough:setScale(dough.scale + (dt * scaleIncreasePerSecond))
                         -- check to see if the dough is now at max size (4)
                         if dough.scale >= 4 then
                             -- remove the dough and create the bread
-                            local pos = dough.position
-                            -- remove the dough
-                            dough:remove(1)
                             -- create an instance of bread
                             local bread = world.createObject(objectsWB:get('baked_bread_id'), dough.count)
                             -- teleport the bread to the dough's position
-                            bread:teleport(world.players[1].cell, pos)
+                            bread:teleport(world.players[1].cell, dough.position)
+                            -- remove the dough
+                            dough:remove(dough.count)
                         end
                     end
                 end
@@ -262,9 +225,8 @@ return {
         onUpdate = onUpdate
     },
     eventHandlers = {
-        attachScript = attachScript,
         createAndMoveToInventory = createAndMoveToInventory,
         createAndMoveToPosition = createAndMoveToPosition,
-        removeObject = removeObject
+        removeObject = removeObject,
     }
 }

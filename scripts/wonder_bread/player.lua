@@ -96,21 +96,6 @@ local function receiveBackData(data)
     ui.showMessage('Received back data: ' .. data.eventName)
 end
 
-local function attachScript(data)
-    -- print('in attachScript')
-    -- local objectId = data.returnData.objectId
-    -- print('objectId: ' .. objectId)
-    local object = data.object
-    print('object: ' .. object.recordId)
-
-    -- TODO: bounce back to global to actually attach the script
-    core:sendGlobalEvent('attachScript', {
-        objectId = objectId,
-        scriptName = 'wonder_bread/dough',
-        player = self.object
-    })
-end
-
 -- returns true if ANY passed items are in the player's inventory
 local function anyInInventory(i)
     -- check if i is a single item or a list of items
@@ -200,22 +185,23 @@ local function onKeyPress(key)
         local target = getTarget()
         if hasHitWater(target) then
             if isPlayerCloseToWater(target) then
+                -- fill the empty bottles in the player's inventory with water
                 local emptyBottles = getAllInInventory(bottles)
                 if emptyBottles then
-                    for _, v in ipairs(emptyBottles) do
+                    for _, bottle in ipairs(emptyBottles) do
                         -- add a full bottle to the player's inventory
                         core.sendGlobalEvent("createAndMoveToInventory", {
                             object = {
-                                id = objectsWB:get('full_bottle_ids')[v.recordId],
+                                id = objectsWB:get('full_bottle_ids')[bottle.recordId],
                                 type = typeMap[types.Miscellaneous],
-                                count = v.count or 1,
+                                count = bottle.count,
                             },
                             player = self.object
                         })
 
                         -- remove the empty bottle from the player's inventory
                         core.sendGlobalEvent("removeObject", {
-                            object = v,
+                            object = bottle,
                             player = self.object
                         })
                     end
@@ -255,6 +241,7 @@ local function onKeyPress(key)
                                 type = typeMap[types.Miscellaneous],
                                 position = position,
                                 count = count,
+                                -- TODO: could we somehow have a default scale for dough?
                                 scale = 2.0
                             },
                             player = self.object,
@@ -269,6 +256,7 @@ local function onKeyPress(key)
 
                         for _, bottle in ipairs(fullBottles) do
                             local toReplace = math.min(toConvert, bottle.count)
+                            -- remove the full bottle from the player's inventory
                             core.sendGlobalEvent('removeObject', {
                                 object = bottle,
                                 count = toReplace,
@@ -278,6 +266,7 @@ local function onKeyPress(key)
                             core.sendGlobalEvent('createAndMoveToInventory', {
                                 object = {
                                     -- HACK: get the ID from the record's model
+                                    -- TODO: this is a hack, should be replaced with a proper ID mapping
                                     id = bottle.type.record(bottle.recordId).model:sub(10, 27),
                                     type = typeMap[types.Miscellaneous],
                                     count = toReplace
@@ -291,7 +280,7 @@ local function onKeyPress(key)
                         end
 
                         ui.showMessage(string.format(
-                            "Converted %d wickwheat%s to pearls",
+                            "Converted %d wickwheat%s to dough",
                             toConvert,
                             toConvert > 1 and " items" or ""
                         ))
@@ -312,6 +301,5 @@ return {
     },
     eventHandlers = {
         receiveBackData = receiveBackData,
-        attachScript = attachScript
     },
 }
