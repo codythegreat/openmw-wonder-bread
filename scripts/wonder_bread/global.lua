@@ -187,13 +187,14 @@ local function onInit()
     end
 end
 
-local function onUpdate(dt)
-    -- you MUST do this in global instead of a custom script because Statics can't be found outside of cell:getAll
+local function processDoughForPlayer(data)
+    local player = data.player
+    local dt = data.deltaTime
     -- check to see if there are any dough that could be growing
-    for _, item in pairs(world.players[1].cell:getAll(types.Miscellaneous)) do
+    for _, item in pairs(player.cell:getAll(types.Miscellaneous)) do
         if item.recordId == objectsWB:get('dough_id') then
             -- is the dougn near hot coals?
-            for _, static in pairs(world.players[1].cell:getAll(types.Static)) do
+            for _, static in pairs(player.cell:getAll(types.Static)) do
                 if static.recordId == 'furn_coals_hot' then
                     local dough = item
                     local coals = static
@@ -208,7 +209,7 @@ local function onUpdate(dt)
                             -- create an instance of bread
                             local bread = world.createObject(objectsWB:get('baked_bread_id'), dough.count)
                             -- teleport the bread to the dough's position
-                            bread:teleport(world.players[1].cell, dough.position)
+                            bread:teleport(player.cell, dough.position)
                             -- remove the dough
                             dough:remove(dough.count)
                         end
@@ -221,12 +222,12 @@ end
 
 return {
     engineHandlers = {
-        onInit = onInit,
-        onUpdate = onUpdate
+        onInit = onInit
     },
     eventHandlers = {
         createAndMoveToInventory = createAndMoveToInventory,
         createAndMoveToPosition = createAndMoveToPosition,
         removeObject = removeObject,
+         processDoughForPlayer = processDoughForPlayer
     }
 }

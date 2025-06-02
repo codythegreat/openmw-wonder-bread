@@ -298,9 +298,14 @@ local function onKeyPress(key)
     end
 end
 
+local function onUpdate(dt)
+    core.sendGlobalEvent("processDoughForPlayer", { player = self.object, deltaTime = dt })
+end
+
 return {
     engineHandlers = {
-        onKeyPress = onKeyPress
+        onKeyPress = onKeyPress,
+        onUpdate = onUpdate
     },
     eventHandlers = {
         receiveBackData = receiveBackData,
