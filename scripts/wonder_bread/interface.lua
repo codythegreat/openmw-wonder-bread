@@ -18,11 +18,18 @@ I.Settings.registerGroup({
    settings = {
       {
         key = "actionHotkey",
-	    default = input.KEY.B,
-	    renderer = "inputKeyBox",
-	    name = "Hotkey",
-	    description = "Hotkey used for filling bottles and creating dough",
-	  },
+        default = input.KEY.B,
+        renderer = "inputKeyBox",
+        name = "Hotkey",
+        description = "Changes the hotkey used for filling bottles and creating dough.",
+     },
+     {
+        key = "debugLoggingEnabled",
+        default = false,
+        renderer = "checkbox",
+        name = "Enable Debug Logging",
+        description = "If checked, enables detailed debug messages in the console.",
+      },
    },
 })
 

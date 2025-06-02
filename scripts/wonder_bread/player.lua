@@ -93,7 +93,10 @@ local ingredientsToDough = {
 
 -- receives back data from the global event
 local function receiveBackData(data)
-    ui.showMessage('Received back data: ' .. data.eventName)
+    local debugEnabled = settingsWB:get('debugLoggingEnabled')
+    if debugEnabled then
+        print('Debug (receiveBackData): eventName - ' .. data.eventName)
+    end
 end
 
 -- returns true if ANY passed items are in the player's inventory
