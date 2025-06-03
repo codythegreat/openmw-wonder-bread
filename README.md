@@ -2,6 +2,8 @@
 
 A very simple mod that allows the player to "bake bread" similar to the game Arx Fatalis
 
+The bread is actually on par with a standard fatigue potion. You could role play that your character is a talented baker and a lousy alchemist.
+
 Here is how the mod works:
 
 1) you'll need atleast one wickwheat and one bottle
