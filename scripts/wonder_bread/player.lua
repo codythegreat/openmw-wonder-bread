@@ -190,8 +190,10 @@ local function onKeyPress(key)
             if isPlayerCloseToWater(target) then
                 -- fill the empty bottles in the player's inventory with water
                 local emptyBottles = getAllInInventory(bottles)
-                if emptyBottles then
+                if #emptyBottles > 0 then
+                    local filledBottleCount = 0
                     for _, bottle in ipairs(emptyBottles) do
+                        filledBottleCount = filledBottleCount + bottle.count
                         -- add a full bottle to the player's inventory
                         core.sendGlobalEvent("createAndMoveToInventory", {
                             object = {
@@ -207,6 +209,14 @@ local function onKeyPress(key)
                             object = bottle,
                             player = self.object
                         })
+                    end
+                    -- show a message to the player indicating how many bottles were filled
+                    if filledBottleCount > 0 then
+                        local bottleText = "bottle"
+                        if filledBottleCount > 1 then
+                            bottleText = "bottles"
+                        end
+                        ui.showMessage(string.format("Filled %d %s with water.", filledBottleCount, bottleText))
                     end
                 end
             end
@@ -233,6 +243,9 @@ local function onKeyPress(key)
 
                         -- only convert as many wickwheat as there are full bottles
                         local toConvert = math.min(totalBottles, totalWick)
+
+                        -- show a message to the player indicating how many wickwheat will be converted
+                        ui.showMessage(string.format("Converted %d wickwheat to dough", toConvert))
 
                         local position = target.hitPos
                         local count = toConvert
@@ -281,12 +294,6 @@ local function onKeyPress(key)
                                 break
                             end
                         end
-
-                        ui.showMessage(string.format(
-                            "Converted %d wickwheat%s to dough",
-                            toConvert,
-                            toConvert > 1 and " items" or ""
-                        ))
                     else
                         ui.showMessage("No full bottles found in your inventory.")
                     end
